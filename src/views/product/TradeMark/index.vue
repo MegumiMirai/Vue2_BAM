@@ -42,6 +42,7 @@
             type="danger"
             icon="el-icon-delete"
             size="mini"
+            @click="deleteTradeMark(row)"
           >删除</el-button>
         </template>
       </el-table-column>
@@ -61,12 +62,15 @@
     />
 
     <!-- 对话框 -->
-    <el-dialog title="添加品牌" :visible.sync="dialogFormVisible">
-      <el-form style="width: 80%" :model="tmForm">
-        <el-form-item label="品牌名称" label-width="100px">
+    <el-dialog
+      :title="tmForm.id ? '修改品牌' : '添加品牌'"
+      :visible.sync="dialogFormVisible"
+    >
+      <el-form ref="ruleForm" style="width: 80%" :model="tmForm" :rules="rules">
+        <el-form-item label="品牌名称" label-width="100px" prop="tmName">
           <el-input v-model="tmForm.tmName" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="品牌LOGO" label-width="100px">
+        <el-form-item label="品牌LOGO" label-width="100px" prop="logoUrl">
           <el-upload
             class="avatar-uploader"
             action="/dev-api/admin/product/fileUpload"
@@ -98,6 +102,13 @@
 export default {
   name: 'TradeMark',
   data() {
+    var validateTmName = (rule, value, callback) => {
+      if (value.length < 2 || value.length > 10) {
+        callback('品牌名称需要2-10位')
+      } else {
+        callback()
+      }
+    }
     return {
       // 当前页数
       page: 1,
@@ -113,6 +124,14 @@ export default {
       tmForm: {
         tmName: '',
         logoUrl: ''
+      },
+      // 表单内验证规则
+      rules: {
+        tmName: [
+          { required: true, message: '请输入品牌名称', trigger: 'change' },
+          { validator: validateTmName, trigger: 'change' }
+        ],
+        logoUrl: [{ required: true, message: '请添加品牌图片' }]
       }
     }
   },
@@ -127,10 +146,12 @@ export default {
       this.total = result.data.total
       this.list = result.data.records
     },
+    // 页面的limit改变
     handleSizeChange(size) {
       this.limit = size
       this.getTradeMarkList()
     },
+    // 当前页数改变
     handleCurrentChange(page) {
       this.page = page
       this.getTradeMarkList()
@@ -149,12 +170,14 @@ export default {
       // 在这里要把row里面的数据解构赋值给tmForm，否则双向绑定会直接修改数据
       this.tmForm = { ...row }
       // 发起请求
-      this.addOrUpdateTradeMark()
+      // this.addOrUpdateTradeMark()
     },
+    // 图片上传成功
     handleAvatarSuccess(res, file) {
       // 图片上传成功保存
       this.tmForm.logoUrl = URL.createObjectURL(file.raw)
     },
+    // 图片上传前
     beforeAvatarUpload(file) {
       const isJPG = file.type === 'image/jpeg'
       const isLt2M = file.size / 1024 / 1024 < 2
@@ -168,20 +191,63 @@ export default {
       return isJPG && isLt2M
     },
     // 添加或修改商品
-    async addOrUpdateTradeMark() {
-      // 关闭对话框
-      this.dialogFormVisible = false
-      // 发送请求
-      const res = await this.$API.tradeMark.reqAddOrUpdateTrademark(this.tmForm)
-      if (res.code === 200) {
-        this.$message.success(
-          this.tmForm.id ? '修改商品成功！' : '添加商品成功!'
-        )
-      } else {
-        this.$message.error(res.message)
-      }
-      // 重新获取数据
-      this.getTradeMarkList()
+    addOrUpdateTradeMark() {
+      this.$refs.ruleForm.validate(async(valid) => {
+        if (valid) {
+          // 关闭对话框
+          this.dialogFormVisible = false
+          // 发送请求
+          const res = await this.$API.tradeMark.reqAddOrUpdateTrademark(
+            this.tmForm
+          )
+          if (res.code === 200) {
+            this.$message.success(
+              this.tmForm.id ? '修改商品成功！' : '添加商品成功!'
+            )
+          } else {
+            this.$message.error(res.message)
+          }
+          // 重新获取数据
+          this.getTradeMarkList()
+        } else {
+          console.log('error submit!!')
+          return false
+        }
+      })
+    },
+    // 删除品牌
+    deleteTradeMark(row) {
+      // console.log(row)
+      this.$confirm('此操作将永久删除该商品, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(async() => {
+        // 删除商品
+        const res = await this.$API.tradeMark.reqDeleteTradeMark(row.id)
+        if (res.code === 200) {
+          this.$message({
+            type: 'success',
+            message: '删除成功!'
+          })
+          // 重新获取列表
+          // 先判断当前页是否只剩下一条数据，只有一条要返回上一页面，否则留在本页
+          if (this.list.length === 1) {
+            this.page -= 1
+          }
+          this.getTradeMarkList()
+        } else {
+          this.$message({
+            type: 'info',
+            message: '删除失败'
+          })
+        }
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        })
+      })
     }
   }
 }
