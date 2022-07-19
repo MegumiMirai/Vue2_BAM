@@ -40,12 +40,14 @@ import API from '@/api'
 
 // 导入全局组件
 import CategorySelect from '@/components/CategorySelect/CategorySelect'
+import HintButton from '@/components/HintButton/HintButton'
 // 组件实例的原型的原型指向的是Vue.prototype
 // 任意组件可以使用API相关的接口
 Vue.prototype.$API = API
 
 // 注册全局组件
 Vue.component(CategorySelect.name, CategorySelect)
+Vue.component(HintButton.name, HintButton)
 
 new Vue({
   el: '#app',

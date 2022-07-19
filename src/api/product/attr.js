@@ -17,7 +17,7 @@ export const reqGetAttrInfoList = ({ category1Id, category2Id, category3Id }) =>
 })
 
 // 添加属性与属性值接口
-export const reqAddAttr = (data) => request({ url: '/admin/product/saveAttrInfo', method: 'POST', data })
+export const reqAddOrUpdateAttr = (data) => request({ url: '/admin/product/saveAttrInfo', method: 'POST', data })
 /*
 {
   "attrName": '', // 属性名

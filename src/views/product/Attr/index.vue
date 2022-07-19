@@ -1,7 +1,7 @@
 <template>
   <div>
     <el-card style="margin-bottom: 20px">
-      <CategorySelect @getCategoryId="getCategoryId" />
+      <CategorySelect :show="!isShowTable" @getCategoryId="getCategoryId" />
     </el-card>
     <el-card>
       <div v-show="isShowTable">
@@ -55,17 +55,17 @@
             </template>
           </el-table-column>
           <el-table-column label="操作">
-            <template slot-scope="{row}">
+            <template slot-scope="{row, $index}">
               <el-popconfirm
                 :title="`确定删除${row.valueName}吗？`"
-                @onConfirm="deleteAttrValue"
+                @onConfirm="deleteAttrValue($index)"
               >
                 <el-button slot="reference" type="danger" icon="el-icon-delete" size="mini">删除</el-button>
               </el-popconfirm>
             </template>
           </el-table-column>
         </el-table>
-        <el-button type="primary">保存</el-button>
+        <el-button type="primary" :disabled="attrInfo.attrValueList.length < 1" @click="addOrUpdateAttr">保存</el-button>
         <el-button @click="isShowTable=true">取消</el-button>
       </div>
     </el-card>
@@ -199,8 +199,39 @@ export default {
     deleteAttr() {
       console.log(123)
     },
-    deleteAttrValue() {
-      console.log(123)
+    // 删除属性值
+    deleteAttrValue(index) {
+      // 不需要发送请求
+      this.attrInfo.attrValueList.splice(index, 1)
+    },
+    async addOrUpdateAttr() {
+      // 处理参数
+      // 1. 过滤出valueName不为空字符串的
+      // 2. 删除掉flag参数
+      this.attrInfo.attrValueList = this.attrInfo.attrValueList.filter(item => {
+        if (item.valueName !== '') {
+          delete item.flag
+          return true
+        }
+      })
+      // 添加或修改商品
+      try {
+        await this.$API.attr.reqAddOrUpdateAttr(this.attrInfo)
+        // 展示表格
+        this.isShowTable = true
+        // 弹出消息
+        this.$message({
+          type: 'success',
+          message: '保存成功！'
+        })
+        // 重新获取数据
+        this.getAttrList()
+      } catch (error) {
+        this.$message({
+          type: 'error',
+          message: '保存失败！'
+        })
+      }
     }
   }
 }
