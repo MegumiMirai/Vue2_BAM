@@ -9,7 +9,7 @@ export const reqSpu = (spuId) => request({ url: `/admin/product/getSpuById/${spu
 // 获取品牌信息
 export const reqTradeMarkList = () => request({ url: `/admin/product/baseTrademark/getTrademarkList`, method: 'get' })
 
-// 获取SPU图标的接口
+// 获取SPU图片的接口
 export const reqSpuImageList = (spuId) => request({ url: `/admin/product/spuImageList/${spuId}`, method: 'get' })
 
 // 获取平台全部销售属性----整个平台销售属性一共三个
@@ -28,3 +28,15 @@ export const reqAddOrUpdateSpu = (spuInfo) => {
 
 // 删除spu
 export const reqDeleteSpu = (spuId) => request({ url: `/admin/product/deleteSpu/${spuId}`, method: 'delete' })
+
+// 获取销售属性的数据
+export const reqSpuSaleAttrList = (spuId) => request({ url: `/admin/product/spuSaleAttrList/${spuId}`, method: 'get' })
+
+// 获取平台属性的数据
+export const reqAttrInfoList = (category1Id, category2Id, category3Id) => request({ url: `/admin/product/attrInfoList/${category1Id}/${category2Id}/${category3Id}`, method: 'get' })
+
+// 添加SKU
+export const reqAddSku = (skuInfo) => request({ url: '/admin/product/saveSkuInfo', method: 'post', data: skuInfo })
+
+// 获取SKU列表数据的接口
+export const reqSkuList = (spuId) => request({ url: `/admin/product/findBySpuId/${spuId}`, method: 'get' })
